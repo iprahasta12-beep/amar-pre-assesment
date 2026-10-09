@@ -3,13 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Amar Designer UX pre-assessment. Share your design improvements and rationale.">
+  <meta name="description" content="Amar Designer UX pre-assessment. Identify UX problems and explain why they are problems.">
   <title>UX Pre-Assessment — Amar Designer</title>
   <link rel="stylesheet" href="style.css">
   <style>
     .completion-illustration { display: block; width: min(240px, 65vw); height: auto; margin: 0 auto 24px; }
-    .reference-zoom-button { display: block; padding: 0; border: 0; background: transparent; border-radius: 24px; cursor: zoom-in; }
-    .reference-zoom-button:focus-visible { outline: 3px solid #534fc5; outline-offset: 4px; }
+    .assessment-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 24px; }
+    .assessment-content .icon-container { position: relative; display: block; width: 100%; height: auto; min-width: 0; padding: 0; margin: 0; background: transparent; overflow: hidden; border-radius: 0; }
+    .icon-container .reference-image { display: block; width: 100%;padding:20px!important; background-color: #e9e9e9; height: auto; max-width: none; max-height: none; margin: 0; padding: 0; object-fit: contain; border-radius: 0; }
+    .reference-zoom-button { position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border: 1px solid #d9dce5; border-radius: 10px; background: #fff; color: #1e2229; font: inherit; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, .08); }
+    .reference-zoom-button:hover { background: #f5f6f9; }
+    .reference-zoom-button:focus-visible { outline: 3px solid #534fc5; outline-offset: 3px; }
+    .answer-help { margin: 6px 0 12px; font-size: 14px; line-height: 1.5; color: #555d6b; }
+    .fields-stack { min-width: 0; }
+    @media (max-width: 760px) { .assessment-content { grid-template-columns: minmax(0, 1fr); } }
     .reference-modal { width: min(960px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 20px; border: 0; border-radius: 24px; background: #fff; color: #1e2229; box-shadow: 0 24px 80px rgba(0, 0, 0, .2); }
     .reference-modal::backdrop { background: rgba(20, 24, 38, .72); }
     .reference-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
@@ -42,18 +49,14 @@
         </div>
         <div class="assessment-content">
           <div class="icon-container">
-            <button id="reference-zoom" class="reference-zoom-button" type="button" aria-label="Enlarge reference image" aria-haspopup="dialog" aria-controls="reference-modal">
-              <img src="assets/reference.png" width="228" height="228" alt="Purple rocket illustration with colourful exhaust; assessment reference image" class="reference-image">
-            </button>
+            <img id="reference-preview" src="assets/reference.png" alt="Send money screen for the UX assessment" class="reference-image">
+            <button id="reference-zoom" class="reference-zoom-button" type="button" aria-label="Expand reference image" aria-haspopup="dialog" aria-controls="reference-modal">Expand</button>
           </div>
           <div class="fields-stack">
             <div class="answer-field">
               <label for="improvements">What can be improved?</label>
-              <textarea id="improvements" name="improvements" placeholder="Describe the design issues you identified and your suggestions for improvement..." maxlength="10000" required></textarea>
-            </div>
-            <div class="answer-field">
-              <label for="rationale">Design Rationale</label>
-              <textarea id="rationale" name="rationale" placeholder="Explain your reasoning and the design principles behind your suggestions..." maxlength="10000" required></textarea>
+              <p id="improvements-help" class="answer-help">List all the UX problems you identify on this page and explain why each is a problem.</p>
+              <textarea id="improvements" name="improvements" aria-describedby="improvements-help" placeholder="List each problem and explain how it affects the user..." maxlength="10000" required></textarea>
             </div>
             <button id="submit-solution" type="submit" class="primary-button">Submit Solution</button>
             <p id="submission-status" role="status" aria-live="polite" hidden></p>
@@ -79,7 +82,7 @@
     (() => {
       const trigger = document.getElementById('reference-zoom');
       const dialog = document.getElementById('reference-modal');
-      const preview = trigger.querySelector('img');
+      const preview = document.getElementById('reference-preview');
       const enlarged = document.getElementById('reference-modal-image');
       let previousOverflow = '';
 
@@ -155,8 +158,7 @@
         const name = values.get('name').trim();
         const email = values.get('email').trim().toLowerCase();
         const improvement = values.get('improvements').trim();
-        const rationale = values.get('rationale').trim();
-        const fingerprint = JSON.stringify([name, email, improvement, rationale]);
+        const fingerprint = JSON.stringify([name, email, improvement]);
         if (fingerprint !== previousFingerprint) {
           submissionId = makeId();
           previousFingerprint = fingerprint;
@@ -172,7 +174,7 @@
             image_id: IMAGE_ID,
             image_context: 'Send money screen',
             improvement_answer: improvement,
-            design_rationale: rationale
+            design_rationale: ''
           }]
         };
         busy = true;
